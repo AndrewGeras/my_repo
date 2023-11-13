@@ -8,7 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from lexicon.lexicon import LEXICON, LEXICON_ADD, LEXICON_BTN
 from users_data.users import check_user_in_list, add_user_to_list
 from states.states import FSMAddWords
-from filters.filters import IsLatinLetters
+from filters.filters import IsLatinLetters, IsListOfWords
 from keyboards.keyboards import yes_no_kb_markup, stop_keyboard
 from utils.utils import save_data, word_in_data
 from json import dump
@@ -72,28 +72,27 @@ async def warning_nonlating_input(message:Message):
     await message.answer(text=LEXICON_ADD['nonlatin_input'])
 
 
-# хендлер обрабатывающий ввод текстового сообщения для добавления значения слова в словаре
-@router.message(StateFilter(FSMAddWords.mean_adding), F.text and F.text.isalpha())
+# # хендлер обрабатывающий ввод текстового сообщения для добавления значениq слов в словаре
+@router.message(StateFilter(FSMAddWords.mean_adding), IsListOfWords())
 async def process_input_meaning(message: Message, state: FSMContext):
+    uid = message.from_user.id
     data = await state.get_data()
-    if message.text.lower() in data['meaning']:
-        await message.answer(
-            text=f"{LEXICON_ADD['mean_in_data']}<b><i>{data['word']}</i></b>?",
-            reply_markup=yes_no_kb_markup
-        )
-    else:
-        data['meaning'].append(message.text.lower())
-        await state.set_data(data)
+    meanings = (meaning.lower().strip() for meaning in message.text.split(','))
+    [data['meaning'].append(meaning) for meaning in meanings if meaning not in data['meaning']]
+    await state.update_data(data)
 
-        await message.answer(
-            text=f"{LEXICON_ADD['ask_about_add_mng']}<b><i>{data['word']}</i></b>?",
-            reply_markup=yes_no_kb_markup
-        )
-    await state.set_state(FSMAddWords.wait_yn_btn_mean)
+    save_data(uid, data)  # сохраняем слово и значение во внешний словарь
+
+    await message.answer(
+        text=f"{LEXICON_ADD['inv_add_word']}",
+        reply_markup=yes_no_kb_markup
+    )
+    await state.set_state(FSMAddWords.wait_yn_btn_word)
+
 
 
 # хендлер обрабаотывающий ввод нетекстового значения слова в словарь
-@router.message(StateFilter(FSMAddWords.mean_adding), ~(F.text and F.text.isalpha()))
+@router.message(StateFilter(FSMAddWords.mean_adding), ~IsListOfWords())
 async def warning_bad_meaning_input(message:Message):
     await message.answer(text=LEXICON_ADD['bad_meaning'])
 
@@ -112,7 +111,7 @@ async def stop_adding_meaning(callback: CallbackQuery, state: FSMContext):
     uid = callback.from_user.id
     data = await state.get_data()
     save_data(uid, data)    # сохраняем слово и значение во внешний словарь
-    await state.set_state(FSMAddWords.word_adding)
+
 
     await callback.message.edit_text(
         text=f"{LEXICON_ADD['inv_add_word']}",
@@ -140,8 +139,3 @@ async def warning_not_press_btns_meaning(message: Message):
 async def process_no_for_add_word(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text=LEXICON['end_of_cicle'])
     await state.clear()
-
-
-# @router.message(Command(commands='help'))
-# async def process_help_command(message: Message):
-#     await message.answer(text=LEXICON['/help'])
