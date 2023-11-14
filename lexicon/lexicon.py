@@ -12,7 +12,7 @@ LEXICON: dict[str, str] = {
 
 
 LEXICON_BTN: dict[str, str] = {
-    'stop_button': '🛑 Выйти из режима',
+    'stop_button': '🔴 Выйти из режима',
     'prev_btn': '⬅️Назад',
     'next_btn': '➡️Вперёд',
 }

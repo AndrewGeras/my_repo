@@ -3,7 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state
 from aiogram.fsm.context import FSMContext
-from lexicon.lexicon import LEXICON, LEXICON_BTN
+from lexicon.lexicon import LEXICON, LEXICON_BTN, LEXICON_COMMANDS
 
 
 router = Router()
@@ -23,3 +23,8 @@ async def process_idler_stop_btn(message: Message):
     await message.answer(text=LEXICON['idler_stop_button'])
     await message.delete()
 
+
+# Хендлер обрабатывает отправку любого сообщения вне какого-либо режима
+@router.message(StateFilter(default_state), ~F.text.in_(LEXICON_COMMANDS.keys()))
+async def process_idler_update(message: Message):
+    await message.delete()

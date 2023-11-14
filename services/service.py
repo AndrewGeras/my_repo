@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import json
 
 
 @dataclass
@@ -8,7 +7,7 @@ class DictItem:
     meaning: list[str]  #  список его значений
     u_answ: str = None  #  последний ответ пользователя
     t_status: str = None    #  статус для режима проверки слов (test-status)
-    m_status: bool = None   #  статус запомненности (memorization-status)
+    m_status: int = 0   #  статус запомненности (memorization-status)
 
     def __str__(self):
         return f"{self.key} - {', '.join(self.meaning)}. TS: {self.t_status}, MS: {self.m_status}"
@@ -19,7 +18,7 @@ class DictItem:
                 'meaning': self.meaning,
                 'u_answ': self.u_answ,
                 't_status': self.t_status,
-                'm-status': self.m_status
+                'm_status': self.m_status
             }
         }
 

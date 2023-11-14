@@ -58,20 +58,22 @@ def proc_user_resp(data: dict[str, dict[str, list[str] | str | bool | None]], te
     word = tuple(filter(lambda x: data[x]['t_status'] is True, data.keys()))[0]
     data[word]['u_answ'] = text
     data[word]['t_status'] = False
+    data[word]['m_status'] = data[word].get('m_status') + (text in data[word]['meaning'])
+
 
     if method == 'by_word':
-        text = choice(
+        response = choice(
             (LEXICON_TEST['wrong_answ'], LEXICON_TEST['right_answ'])
-            [data[word]['u_answ'] in data[word]['meaning']])
+            [text in data[word]['meaning']])
     if method == 'by_meaning':
-        text = choice(
+        response = choice(
             (LEXICON_TEST['wrong_answ'], LEXICON_TEST['right_answ'])
-            [data[word]['u_answ'] == word])
+            [text == word])
 
-    return text, data
+    return response, data
 
 
-def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], method: str) -> tuple[str, dict]:
+def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], method: str) -> tuple[str, dict, bool]:
     '''функци принимает словарь с данными и метод тестирования.
     Выбирает слово из неопрошенных и возвращает его.
     А если таких не осталось возвращает результат тестирования'''
@@ -80,6 +82,6 @@ def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], 
         word = choice(words)
         data[word]['t_status'] = True
         text = word if method == 'by_word' else ', '.join(data[word]['meaning'])
-        return text, data
+        return text, data, False
     text = get_wt_result(data) if method == 'by_word' else get_mt_result(data)
-    return text, data
+    return text, data, True

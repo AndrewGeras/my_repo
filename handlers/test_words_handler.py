@@ -54,19 +54,21 @@ async def process_by_word_btn(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text=', '.join(meaning['meaning']))
 
 
-#  Хендлер обраатывающий ввод слова в методе проверки по словам
+#  Хендлер обраатывающий ввод слова в методе проверки "по словам"
 @router.message(StateFilter(FSMTestWords.by_word_mthd), F.text)
 async def process_user_meaning(message: Message, state: FSMContext):
     text, data = proc_user_resp(await state.get_data(), message.text.lower(), method='by_word')
     await message.answer(text=text)
 
     #  отбираем слово из неопрошенных и если таких больше нет выдаём резульат теста
-    text, data = choice_next_word(data, method='by_word')
+    text, data, finished = choice_next_word(data, method='by_word')
     await message.answer(text=text)
     await state.update_data(data)
+    if finished:
+        await state.clear()
 
 
-#  Хендлер обрабатывающий ввод слова при методе проверки по значениям
+#  Хендлер обрабатывающий ввод слова при методе проверки "по значениям"
 @router.message(StateFilter(FSMTestWords.by_mean_mthd), F.text)
 async def process_user_word(message: Message, state: FSMContext):
     data = await state.get_data()
@@ -74,9 +76,11 @@ async def process_user_word(message: Message, state: FSMContext):
     await message.answer(text=text)
 
     #  отбираем слово из неопрошенных и если таких больше нет выдаём резульат теста
-    text, data = choice_next_word(data, method='by_meaning')
+    text, data, finished = choice_next_word(data, method='by_meaning')
     await message.answer(text=text)
     await state.update_data(data)
+    if finished:
+        await state.clear()
 
 
 # Хендлер обрабатывающий отправку пользователем нетекстопого сообщения
