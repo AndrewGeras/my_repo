@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from lexicon.lexicon import LEXICON, LEXICON_TEST, LEXICON_ADD, LEXICON_BTN
 from states.states import FSMTestWords, FSMAddWords
 from keyboards.keyboards import word_mean_kb_markup, yes_no_kb_markup, stop_keyboard
-from utils.utils import save_data, load_data, proc_user_resp, choice_next_word
+from utils.utils import load_data, proc_user_resp, choice_next_word, save_result
 from random import choice
 
 
@@ -65,6 +65,7 @@ async def process_user_meaning(message: Message, state: FSMContext):
     await message.answer(text=text)
     await state.update_data(data)
     if finished:
+        save_result(message.from_user.id, data)
         await state.clear()
 
 
@@ -80,6 +81,7 @@ async def process_user_word(message: Message, state: FSMContext):
     await message.answer(text=text)
     await state.update_data(data)
     if finished:
+        save_result(message.from_user.id, data)
         await state.clear()
 
 

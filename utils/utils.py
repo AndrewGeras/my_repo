@@ -1,7 +1,7 @@
 from json import load, dump
 from services.service import DictItem
 from random import choice
-from lexicon.lexicon import LEXICON_TEST
+from lexicon.lexicon import LEXICON_TEST, LEXICON
 
 
 def load_data(uid: int) -> dict[str, list[str]]:
@@ -27,7 +27,8 @@ def word_in_data(uid: int, word: str) -> list[str] | None:
 
 def get_dict_page(data: dict[str, dict[str, list[str] | str | int]], page: int, wpp: int) -> str:
     # wpp - количетсво слов на одной странице (words per page)
-    text = '\n\n'.join(tuple(f'{n}. <b>{word}</b> - {", ".join(data[word]["meaning"])}' for n, word in
+    text = '\n\n'.join(tuple(f'{LEXICON["mark"][data[word]["m_status"]]}{n}. '
+                             f'<b>{word}</b> - {", ".join(data[word]["meaning"])}' for n, word in
                              enumerate(tuple(data.keys())[page * wpp: (page + 1) * wpp], wpp * page + 1)))
     return text
 
@@ -58,14 +59,16 @@ def proc_user_resp(data: dict[str, dict[str, list[str] | str | bool | None]], te
     word = tuple(filter(lambda x: data[x]['t_status'] is True, data.keys()))[0]
     data[word]['u_answ'] = text
     data[word]['t_status'] = False
-    data[word]['m_status'] = data[word].get('m_status') + (text in data[word]['meaning'])
-
 
     if method == 'by_word':
+        data[word]['m_status'] = data[word]['m_status'] + (data[word]['m_status'] == 0) + (
+                    text in data[word]['meaning'])
         response = choice(
             (LEXICON_TEST['wrong_answ'], LEXICON_TEST['right_answ'])
             [text in data[word]['meaning']])
+
     if method == 'by_meaning':
+        data[word]['m_status'] = data[word]['m_status'] + (data[word]['m_status'] == 0) + (text == word)
         response = choice(
             (LEXICON_TEST['wrong_answ'], LEXICON_TEST['right_answ'])
             [text == word])
@@ -73,15 +76,28 @@ def proc_user_resp(data: dict[str, dict[str, list[str] | str | bool | None]], te
     return response, data
 
 
+def t_status_to_none(data: dict[str, dict[str, list[str] | str | bool | None]]) -> dict:
+    '''функция приводит все значения t_status к None'''
+    for x in filter(lambda x: not x['t_status'] is None, data.values()):
+        x['t_status'] = x['u_answ'] = None
+    return data
+
+
 def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], method: str) -> tuple[str, dict, bool]:
     '''функци принимает словарь с данными и метод тестирования.
     Выбирает слово из неопрошенных и возвращает его.
     А если таких не осталось возвращает результат тестирования'''
-    words = tuple(filter(lambda x: data[x]['t_status'] is None, data.keys()))
+    words = tuple(filter(lambda x: data[x]['t_status'] is None and data[x]['m_status'] < 3, data.keys()))
     if words:
         word = choice(words)
         data[word]['t_status'] = True
         text = word if method == 'by_word' else ', '.join(data[word]['meaning'])
         return text, data, False
     text = get_wt_result(data) if method == 'by_word' else get_mt_result(data)
+    t_status_to_none(data)
     return text, data, True
+
+
+def save_result(uid: int, data: dict):
+    with open(f'users_data/vocabularies/{uid}.json', 'w', encoding='utf-8') as file:
+        dump(data, file, ensure_ascii=False, indent=2)
