@@ -1,7 +1,7 @@
 from aiogram.types import Message
 from aiogram.filters import BaseFilter
 from string import ascii_letters
-from re import findall
+from re import fullmatch
 
 
 
@@ -12,13 +12,13 @@ class IsLatinLetters(BaseFilter):
 
 class IsListOfWords(BaseFilter):
     async def __call__(self, message: Message) -> bool:
-        patern = r'^([А-Яа-я]+[ \-]?[А-Яа-я]+, ?)*([А-Яа-я]+[ \-]?[А-Яа-я]+)$'
-        return message.text and bool(findall(patern, message.text))
-
+        pattern = r"^ *((([а-яА-Я])+|([а-яА-Я])+[ \-]([а-яА-Я])+) *, *)*(([а-яА-Я])+|([а-яА-Я])+[ \-]([а-яА-Я])+) *$"
+        return message.text and bool(fullmatch(pattern, message.text))
 
 
 class UserAnswer(BaseFilter):
     async def __call__(self, message: Message) -> dict[str, str] | None:
         if message.text:
             return {'user_answer': message.text}
+
 
