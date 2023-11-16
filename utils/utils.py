@@ -84,6 +84,8 @@ def t_status_to_none(data: dict[str, dict[str, list[str] | str | bool | None]]) 
 
 
 def choise_first_word(data: dict) -> tuple:
+    '''Функция отбирает и возвращает слово из незапомненных
+    или возвращает ответ, что незапомненных слов нет'''
     words = tuple(filter(lambda x: data[x]['m_status'] < 3, data))
     if words:
         word = choice(words)
