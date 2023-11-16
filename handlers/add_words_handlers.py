@@ -71,7 +71,6 @@ async def process_input_meaning(message: Message, state: FSMContext):
     await state.set_state(FSMAddWords.wait_yn_btn_word)
 
 
-
 # хендлер обрабаотывающий ввод нетекстового значения слова в словарь
 @router.message(StateFilter(FSMAddWords.mean_adding), ~IsListOfWords())
 async def warning_bad_meaning_input(message:Message):

@@ -39,7 +39,8 @@ LEXICON_FW: dict[str, str] = {
 
 LEXICON_TEST: dict[str, tuple] = {
     'right_answ': ('✅Верно\n', '✅Молодец\n', '✅Отлично\n', '✅Правильно\n'),
-    'wrong_answ': ('❌Неверно\n', '❌Неправльно\n', '❌Не в этот раз\n', '❌Мимо\n')
+    'wrong_answ': ('❌Неверно\n', '❌Неправльно\n', '❌Не в этот раз\n', '❌Мимо\n'),
+    'is_all_memorized': f'В словаре не осталось незапомненных слов.\n{LEXICON_ADD["inv_add_word"]}'
 }
 
 LEXICON_COMMANDS: dict[str, str] = {

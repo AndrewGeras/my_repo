@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from lexicon.lexicon import LEXICON, LEXICON_TEST, LEXICON_ADD, LEXICON_BTN
 from states.states import FSMTestWords, FSMAddWords
 from keyboards.keyboards import word_mean_kb_markup, yes_no_kb_markup, stop_keyboard
-from utils.utils import load_data, proc_user_resp, choice_next_word, save_result
+from utils.utils import load_data, proc_user_resp, choice_next_word, save_result, choise_first_word
 from random import choice
 
 
@@ -37,21 +37,35 @@ async def process_test_command(message: Message, state: FSMContext):
 async def process_by_word_btn(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMTestWords.by_word_mthd)
     data = await state.get_data()
-    word = choice(tuple(data.keys()))
-    data[word]['t_status'] = True
-    await state.update_data(data)
-    await callback.message.edit_text(text=word)
+    text, data, finished = choise_first_word(data)
+    if finished:
+        await state.clear()
+        await callback.message.edit_text(
+            text=text,
+            reply_markup=yes_no_kb_markup
+        )
+        await state.set_state(FSMAddWords.wait_yn_btn_word)
+    else:
+        await state.update_data(data)
+        await callback.message.edit_text(text=text)
 
 
 #  Хендлер обрабатывающий нажатие кнопки "По значениям"
 @router.callback_query(StateFilter(FSMTestWords.wait_choose_mthd), F.data == 'by_meaning')
-async def process_by_word_btn(callback: CallbackQuery, state: FSMContext):
+async def process_by_mean_btn(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMTestWords.by_mean_mthd)
     data = await state.get_data()
-    word, meaning = choice(tuple(data.items()))
-    data[word]['t_status'] = True
-    await state.update_data(data)
-    await callback.message.edit_text(text=', '.join(meaning['meaning']))
+    text, data, finished = choise_first_word(data)
+    if finished:
+        await state.clear()
+        await callback.message.edit_text(
+            text=text,
+            reply_markup=yes_no_kb_markup
+        )
+        await state.set_state(FSMAddWords.wait_yn_btn_word)
+    else:
+        await state.update_data(data)
+        await callback.message.edit_text(text=', '.join(data[text]['meaning']))
 
 
 #  Хендлер обраатывающий ввод слова в методе проверки "по словам"

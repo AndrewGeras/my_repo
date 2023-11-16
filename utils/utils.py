@@ -83,6 +83,15 @@ def t_status_to_none(data: dict[str, dict[str, list[str] | str | bool | None]]) 
     return data
 
 
+def choise_first_word(data: dict) -> tuple:
+    words = tuple(filter(lambda x: data[x]['m_status'] < 3, data))
+    if words:
+        word = choice(words)
+        data[word]['t_status'] = True
+        return word, data, False
+    return LEXICON_TEST['is_all_memorized'], data, True
+
+
 def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], method: str) -> tuple[str, dict, bool]:
     '''функци принимает словарь с данными и метод тестирования.
     Выбирает слово из неопрошенных и возвращает его.
