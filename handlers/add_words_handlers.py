@@ -1,39 +1,20 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
-from aiogram.filters import Command, CommandStart, StateFilter
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import default_state
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from lexicon.lexicon import LEXICON, LEXICON_ADD, LEXICON_BTN
-from users_data.users import check_user_in_list, add_user_to_list
 from states.states import FSMAddWords
 from filters.filters import IsLatinLetters, IsListOfWords
-from keyboards.keyboards import yes_no_kb_markup, stop_keyboard
+from keyboards.keyboards import yes_no_kb_markup
 from utils.utils import save_data, word_in_data
-from json import dump
 
 
 router = Router()
 
 storage = MemoryStorage()
-
-
-@router.message(CommandStart(), StateFilter(default_state))
-async def process_start_command(message: Message):
-    uid = message.from_user.id
-    if check_user_in_list(uid):
-        await message.answer(text=f"Рад Вас снова видеть {message.from_user.first_name}!\n"
-                                  f"\n{LEXICON['user_greeting']}",
-                             reply_markup=stop_keyboard)
-
-    else:
-        add_user_to_list(uid)
-        with open(f'users_data/vocabularies/{str(uid)}.json', 'x', encoding='utf-8') as file:
-            dump({}, file)
-        await message.answer(text=f"👋🏻Привет {message.from_user.first_name}!\n"
-                              f"\n{LEXICON['new_user_greeting']}",
-                             reply_markup=stop_keyboard)
 
 
 # Хендлер обрабатывающий отправку команды "Добавить слова"
