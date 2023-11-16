@@ -29,14 +29,6 @@ async def process_start_command(message: Message):
                              reply_markup=stop_keyboard)
 
 
-#  Хендлер срабатывающий на нажатие стоп-кнопки
-@router.message(F.text == LEXICON_BTN['stop_button'], ~StateFilter(default_state))
-async def process_stop_btn_press(message: Message, state: FSMContext):
-    await message.answer(text=LEXICON['end_of_cicle'])
-    await state.clear()
-    await message.delete()
-
-
 # Хендлер обрабатывает нажатие стоп-кнопки вне какого-либо режима
 @router.message(F.text == LEXICON_BTN['stop_button'], StateFilter(default_state))
 async def process_idler_stop_btn(message: Message):

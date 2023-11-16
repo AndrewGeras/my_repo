@@ -8,7 +8,8 @@ from aiogram.fsm.context import FSMContext
 from lexicon.lexicon import LEXICON, LEXICON_TEST, LEXICON_ADD, LEXICON_BTN
 from states.states import FSMTestWords, FSMAddWords
 from keyboards.keyboards import word_mean_kb_markup, yes_no_kb_markup, stop_keyboard
-from utils.utils import load_data, proc_user_resp, choice_next_word, save_result, choise_first_word
+from utils.utils import (load_data, proc_user_resp, choice_next_word, save_result,
+                         choise_first_word, get_wt_result, get_mt_result, t_status_to_none)
 from random import choice
 
 
@@ -66,6 +67,28 @@ async def process_by_mean_btn(callback: CallbackQuery, state: FSMContext):
     else:
         await state.update_data(data)
         await callback.message.edit_text(text=', '.join(data[text]['meaning']))
+
+
+# Хендлер обрабатывающий нажатие стоп-кнопки во время теста по словам
+@router.message(StateFilter(FSMTestWords.by_word_mthd), F.text == LEXICON_BTN['stop_button'])
+async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
+    data = await state.get_data()
+    text = get_wt_result(data)
+    await message.answer(text=text)
+    data = t_status_to_none(data)
+    save_result(message.from_user.id, data)
+    await state.clear()
+
+
+# Хендлер обрабатывающий нажатие стоп-кнопки во время теста по значениям
+@router.message(StateFilter(FSMTestWords.by_mean_mthd), F.text == LEXICON_BTN['stop_button'])
+async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
+    data = await state.get_data()
+    text = get_mt_result(data)
+    await message.answer(text=text)
+    data = t_status_to_none(data)
+    save_result(message.from_user.id, data)
+    await state.clear()
 
 
 #  Хендлер обраатывающий ввод слова в методе проверки "по словам"

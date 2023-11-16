@@ -8,7 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from utils.utils import load_data, get_dict_page, get_total_pages
 from states.states import FSMShowDict, FSMAddWords
 from keyboards.pagination import create_pagen_keyboard
-from lexicon.lexicon import LEXICON
+from lexicon.lexicon import LEXICON, LEXICON_BTN
 
 
 
@@ -77,6 +77,14 @@ async def process_nxt_btn_press(callback: CallbackQuery, state: FSMContext):
             )
         )
     await callback.answer()
+
+
+#  Хендлер срабатывающий на нажатие стоп-кнопки
+@router.message(StateFilter(FSMShowDict.show_dict), F.text == LEXICON_BTN['stop_button'])
+async def process_stop_btn_press(message: Message, state: FSMContext):
+    await message.answer(text=LEXICON['end_of_cicle'])
+    await state.clear()
+    await message.delete()
 
 
 #  Хендлер обрабатывающий ввод чего-либо кроме нажатия инлайн-кнопок в режиме показа словаря

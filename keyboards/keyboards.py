@@ -21,7 +21,6 @@ stop_button = KeyboardButton(text=LEXICON_BTN['stop_button'])
 stop_keyboard = ReplyKeyboardMarkup(
         keyboard=[[stop_button]],
         resize_keyboard=True,
-        # one_time_keyboard=True
     )
 
 

@@ -9,6 +9,7 @@ from utils.utils import load_data, get_dict_page, get_total_pages
 from states.states import FSMFindWord, FSMAddWords
 from keyboards.keyboards import yes_no_kb_markup
 from filters.filters import IsLatinLetters
+from lexicon.lexicon import LEXICON_BTN
 
 
 
@@ -30,6 +31,14 @@ async def process_find_word_command(message: Message, state: FSMContext):
     else:
         await message.answer(text=f"{LEXICON_FW['which_word']}")
         await state.set_state(FSMFindWord.find_word)
+    await message.delete()
+
+
+# Хендлер срабатывающий на нажатие стоп-кнопки
+@router.message(F.text == LEXICON_BTN['stop_button'])
+async def process_stop_btn_press(message: Message, state: FSMContext):
+    await message.answer(text=LEXICON['end_of_cicle'])
+    await state.clear()
     await message.delete()
 
 
@@ -89,3 +98,5 @@ async def process_no_button(callback: CallbackQuery, state: FSMContext):
 @router.message(StateFilter(FSMFindWord.wait_yn_ins_wrd))
 async def process_input_in_question(message: Message):
     await message.delete()
+
+

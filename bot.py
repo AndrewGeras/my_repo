@@ -14,10 +14,11 @@ async def main():
     await set_main_menu(bot)
 
     dp.include_router(other_handlers.router)
+    dp.include_router(test_words_handler.router)
     dp.include_router(add_words_handlers.router)
     dp.include_router(show_dict_handlers.router)
     dp.include_router(find_word_hendlers.router)
-    dp.include_router(test_words_handler.router)
+
 
 
     await bot.delete_webhook(drop_pending_updates=True)

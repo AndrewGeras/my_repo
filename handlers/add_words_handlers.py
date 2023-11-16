@@ -28,6 +28,14 @@ async def process_add_word_command(message: Message, state: FSMContext):
     await message.delete()
 
 
+# Хендлер срабатывающий на нажатие стоп-кнопки
+@router.message(F.text == LEXICON_BTN['stop_button'])
+async def process_stop_btn_press(message: Message, state: FSMContext):
+    await message.answer(text=LEXICON['end_of_cicle'])
+    await state.clear()
+    await message.delete()
+
+
 # хендлер обрабатывающий ввод слова латиницей в режиме добавления слова в словарь
 @router.message(StateFilter(FSMAddWords.word_adding), IsLatinLetters())
 async def process_input_latin_word_in_adding(message: Message, state: FSMContext):
