@@ -78,6 +78,7 @@ async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
     data = t_status_to_none(data)
     save_result(message.from_user.id, data)
     await state.clear()
+    await message.delete()
 
 
 # Хендлер обрабатывающий нажатие стоп-кнопки во время теста по значениям
@@ -89,6 +90,7 @@ async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
     data = t_status_to_none(data)
     save_result(message.from_user.id, data)
     await state.clear()
+    await message.delete()
 
 
 #  Хендлер обраатывающий ввод слова в методе проверки "по словам"
