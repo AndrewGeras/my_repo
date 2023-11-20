@@ -25,16 +25,22 @@ def word_in_data(uid: int, word: str) -> list[str] | None:
 
 
 
-def get_dict_page(data: dict[str, dict[str, list[str] | str | int]], page: int, wpp: int) -> str:
+def get_dict_page(data: dict, page: int, mode: int, wpp: int,) -> str:
     # wpp - количетсво слов на одной странице (words per page)
-    text = '\n\n'.join(tuple(f'{LEXICON["mark"][data[word]["m_status"]]}{n}. '
-                             f'<b>{word}</b> - {", ".join(data[word]["meaning"])}' for n, word in
-                             enumerate(tuple(data.keys())[page * wpp: (page + 1) * wpp], wpp * page + 1)))
+    words = tuple(word for word in data if data[word]['m_status'] == mode - 1) if mode else tuple(data)
+
+    if not words:
+        return 'СПИСОК ПУСТ'
+    text = '\n\n'.join((f'{LEXICON["mark"][data[word]["m_status"]]}{n}. '
+                        f'<b>{word}</b> - {", ".join(data[word]["meaning"])}' for n, word in
+                        enumerate(words[page * wpp: (page + 1) * wpp], wpp * page + 1)))
     return text
 
 
-def get_total_pages(data: dict[str, list[str]], wpp: int) -> int:
-    return len(data) // wpp + (0, 1)[bool(len(data) % wpp)]
+def get_total_pages(data: dict, mode: int, wpp: int) -> int:
+    words = tuple(word for word in data if data[word]['m_status'] == mode - 1) if mode else tuple(data)
+    return len(words) // wpp + (0, 1)[bool(len(words) % wpp)]
+
 
 # надо додумать эту функцию и обединить в ней get_wt_result и get_mt_result
 def get_result(data: dict, method: str) -> str:

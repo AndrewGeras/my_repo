@@ -22,57 +22,79 @@ storage = MemoryStorage()
 # Хендлер обрабатывающий вызов команды "Посмотреть словарь"
 @router.message(Command(commands='show_dict'), StateFilter(default_state))
 async def process_show_dict_command(message: Message, state: FSMContext):
-    await state.set_data(load_data(message.from_user.id))
-    if not await state.get_data():
+    dict_ = load_data(message.from_user.id)
+    if not dict_:
         await message.answer(text=LEXICON['empty_dict'])
         await state.set_state(FSMAddWords.word_adding)
     else:
-        data = await state.get_data()
-        total = get_total_pages(data=data, wpp=_wpp)
-        text = get_dict_page(data, 0, _wpp)
+        total = get_total_pages(data=dict_, mode=0, wpp=_wpp)
+        text = get_dict_page(data=dict_, page=0, mode=0, wpp=_wpp)
         await message.answer(
             text=text,
             reply_markup=create_pagen_keyboard(
                 'prev_btn',
-                f'1/{total}',
+                f'🔘 1/{total}',
                 'next_btn'
             )
         )
+        await state.set_data({'dict': dict_, 'mode': 0})
         await state.set_state(FSMShowDict.show_dict)
     await message.delete()
+
+
+#   Хендлер обрабатывающий нажатие средней кнопки
+@router.callback_query(StateFilter(FSMShowDict.show_dict), ~F.data.in_(('prev_btn', 'next_btn')))
+async def process_mdl_btn_press(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    dict_ = data['dict']
+    mode = 0 if data['mode'] == 3 else data['mode'] + 1
+    total = get_total_pages(data=dict_, mode=mode, wpp=_wpp)
+    text = get_dict_page(data=dict_, page=0, mode=mode, wpp=_wpp)
+    await callback.message.edit_text(
+        text=text,
+        reply_markup=create_pagen_keyboard(
+            'prev_btn',
+            f'{LEXICON["mark"][mode] if mode != 3 else "🚦"} {(0, 1)[bool(total)]}/{total}',
+            'next_btn'
+        )
+    )
+    await state.update_data({'dict': dict_, 'mode': mode})
 
 
 #  Хендлер обрабатывающий нажатие кнопки "Вперёд"
 @router.callback_query(StateFilter(FSMShowDict.show_dict), F.data == 'next_btn')
 async def process_nxt_btn_press(callback: CallbackQuery, state: FSMContext):
-    page = int(callback.message.reply_markup.inline_keyboard[0][1].text.split('/')[0])
+    page = int(callback.message.reply_markup.inline_keyboard[0][1].text.split()[1].split('/')[0])
     data = await state.get_data()
-    total = get_total_pages(data=data, wpp=_wpp)
+    dict_, mode = data['dict'], data['mode']
+    total = get_total_pages(data=dict_, mode=mode, wpp=_wpp)
     if page < total:
-        text = get_dict_page(data, page, _wpp)
+        text = get_dict_page(dict_, page, mode, _wpp)
         await callback.message.edit_text(
             text=text,
             reply_markup=create_pagen_keyboard(
                 'prev_btn',
-                f'{page + 1}/{total}',
+                f'{LEXICON["mark"][mode] if mode != 3 else "🚦"} {page + 1}/{total}',
                 'next_btn'
             )
         )
     await callback.answer()
 
+
 #  Хендлер обрабатывающий нажатие кнопки "Назад"
 @router.callback_query(StateFilter(FSMShowDict.show_dict), F.data == 'prev_btn')
 async def process_nxt_btn_press(callback: CallbackQuery, state: FSMContext):
-    page = int(callback.message.reply_markup.inline_keyboard[0][1].text.split('/')[0])
+    page = int(callback.message.reply_markup.inline_keyboard[0][1].text.split()[1].split('/')[0])
     data = await state.get_data()
-    total = get_total_pages(data=data, wpp=_wpp)
+    dict_, mode = data['dict'], data['mode']
+    total = get_total_pages(data=dict_, mode=mode, wpp=_wpp)
     if page > 1:
-        text = get_dict_page(data, page - 2, _wpp)
+        text = get_dict_page(dict_, page - 2, mode, _wpp)
         await callback.message.edit_text(
             text=text,
             reply_markup=create_pagen_keyboard(
                 'prev_btn',
-                f'{page - 1}/{total}',
+                f'{LEXICON["mark"][mode] if mode != 3 else "🚦"} {page - 1}/{total}',
                 'next_btn'
             )
         )
