@@ -1,6 +1,5 @@
 from aiogram.types import Message
 from aiogram.filters import BaseFilter
-from string import ascii_letters
 from re import fullmatch
 
 

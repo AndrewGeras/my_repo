@@ -10,7 +10,7 @@ from states.states import FSMTestWords, FSMAddWords
 from keyboards.keyboards import word_mean_kb_markup, yes_no_kb_markup, stop_keyboard
 from utils.utils import (load_data, proc_user_resp, choice_next_word, save_result,
                          choise_first_word, get_wt_result, get_mt_result, t_status_to_none)
-from random import choice
+
 
 
 router = Router()
@@ -94,7 +94,7 @@ async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
 
 
 #  Хендлер обраатывающий ввод слова в методе проверки "по словам"
-@router.message(StateFilter(FSMTestWords.by_word_mthd), F.text)
+@router.message(StateFilter(FSMTestWords.by_word_mthd), F.text, ~F.text.startswith('/'))
 async def process_user_meaning(message: Message, state: FSMContext):
     text, data = proc_user_resp(await state.get_data(), message.text.lower(), method='by_word')
     await message.answer(text=text)
@@ -109,7 +109,7 @@ async def process_user_meaning(message: Message, state: FSMContext):
 
 
 #  Хендлер обрабатывающий ввод слова при методе проверки "по значениям"
-@router.message(StateFilter(FSMTestWords.by_mean_mthd), F.text)
+@router.message(StateFilter(FSMTestWords.by_mean_mthd), F.text, ~F.text.startswith('/'))
 async def process_user_word(message: Message, state: FSMContext):
     data = await state.get_data()
     text, data = proc_user_resp(data, message.text.lower(), method='by_meaning')
@@ -124,6 +124,13 @@ async def process_user_word(message: Message, state: FSMContext):
         await state.clear()
 
 
+#Хендлер обрабатывающий отправку потенциальной команды
+@router.message(StateFilter(FSMTestWords.by_word_mthd), F.text, F.text.startswith('/'))
+@router.message(StateFilter(FSMTestWords.by_mean_mthd), F.text, F.text.startswith('/'))
+async def warning_some_command_input(message: Message):
+    await message.delete()
+
+
 # Хендлер обрабатывающий отправку пользователем нетекстопого сообщения
 @router.message(StateFilter(FSMTestWords.by_word_mthd), ~F.text)
 @router.message(StateFilter(FSMTestWords.by_mean_mthd), ~F.text)
@@ -135,5 +142,3 @@ async def process_nontext_update(message: Message):
 @router.message(StateFilter(FSMTestWords.wait_choose_mthd))
 async def process_not_press_btns(message: Message):
     await message.delete()
-
-
