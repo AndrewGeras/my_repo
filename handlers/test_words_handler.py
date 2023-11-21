@@ -9,7 +9,7 @@ from lexicon.lexicon import LEXICON, LEXICON_TEST, LEXICON_ADD, LEXICON_BTN
 from states.states import FSMTestWords, FSMAddWords
 from keyboards.keyboards import word_mean_kb_markup, yes_no_kb_markup, stop_keyboard
 from utils.utils import (load_data, proc_user_resp, choice_next_word, save_result,
-                         choise_first_word, get_wt_result, get_mt_result, t_status_to_none)
+                         choise_first_word, get_result, t_status_to_none)
 
 
 
@@ -73,7 +73,7 @@ async def process_by_mean_btn(callback: CallbackQuery, state: FSMContext):
 @router.message(StateFilter(FSMTestWords.by_word_mthd), F.text == LEXICON_BTN['stop_button'])
 async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
     data = await state.get_data()
-    text = get_wt_result(data)
+    text = get_result(data, method='by_word')
     await message.answer(text=text)
     data = t_status_to_none(data)
     save_result(message.from_user.id, data)
@@ -85,7 +85,7 @@ async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
 @router.message(StateFilter(FSMTestWords.by_mean_mthd), F.text == LEXICON_BTN['stop_button'])
 async def process_stop_btn_in_word_test(message: Message, state: FSMContext):
     data = await state.get_data()
-    text = get_mt_result(data)
+    text = get_result(data, method='by_meaning')
     await message.answer(text=text)
     data = t_status_to_none(data)
     save_result(message.from_user.id, data)

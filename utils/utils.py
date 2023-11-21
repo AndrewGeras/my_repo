@@ -44,29 +44,26 @@ def get_total_pages(data: dict, mode: int, wpp: int) -> int:
 
 # надо додумать эту функцию и обединить в ней get_wt_result и get_mt_result
 def get_result(data: dict, method: str) -> str:
-    words = tuple(filter(lambda x: not data[x]['t_status'] is None, data))
+    words = tuple(filter(lambda x: not data[x]['u_answ'] is None, data))
+
     if method == 'by_word':
-        pass
+        text = '\n\n'.join(
+            (f"{n}. <b>{word}</b> - {', '.join(data[word]['meaning'])}\n"
+             f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> "
+             f"{('❌', '✅')[data[word]['u_answ'] in data[word]['meaning']]}"
+             for n, word in enumerate(words, 1)))
+        rslt = f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] in data[word]['meaning'] for word in words)}" \
+               f" из {len(words)}</b>"
 
+    if method == 'by_meaning':
+        text = '\n\n'.join(
+            (f"{n}. {', '.join(data[word]['meaning'])} - <b>{word}</b>\n"
+            f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> "
+            f"{('❌', '✅')[data[word]['u_answ'] == word]}"
+            for n, word in enumerate(words, 1)))
+        rslt = f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] == word for word in words)} из {len(words)}</b>"
 
-def get_wt_result(data: dict) -> str:
-    words = tuple(filter(lambda x: not data[x]['u_answ'] is None, data))
-    return '\n\n'.join(
-        (f"{n}. <b>{word}</b> - {', '.join(data[word]['meaning'])}\n"
-         f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> {('❌', '✅')[data[word]['u_answ'] in data[word]['meaning']]}"
-         for n, word in enumerate(words, 1))) + \
-           f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] in data[word]['meaning'] for word in words)} из " \
-           f"{len(words)}</b>"
-
-
-def get_mt_result(data: dict) -> str:
-    words = tuple(filter(lambda x: not data[x]['u_answ'] is None, data))
-    return '\n\n'.join(
-        (f"{n}. {', '.join(data[word]['meaning'])} - <b>{word}</b>\n"
-         f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> {('❌', '✅')[data[word]['u_answ'] == word]}"
-         for n, word in enumerate(words, 1))) + \
-           f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] == word for word in words)} из " \
-           f"{len(words)}</b>"
+    return text + rslt
 
 
 def proc_user_resp(data: dict[str, dict[str, list[str] | str | bool | None]], text: str, method: str) -> tuple[str, dict]:
