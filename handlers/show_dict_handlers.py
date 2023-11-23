@@ -14,7 +14,7 @@ from lexicon.lexicon import LEXICON, LEXICON_BTN
 
 
 router = Router()
-_wpp = 15  # - количество слов на странице (words per page)
+_wpp = 10  # - количество слов на странице (words per page)
 
 storage = MemoryStorage()
 
@@ -28,7 +28,7 @@ async def process_show_dict_command(message: Message, state: FSMContext):
         await state.set_state(FSMAddWords.word_adding)
     else:
         total = get_total_pages(data=dict_, mode=0, wpp=_wpp)
-        text = get_dict_page(data=dict_, page=0, mode=0, wpp=_wpp)
+        text = f"{LEXICON['dict_header']}{get_dict_page(data=dict_, page=0, mode=0, wpp=_wpp)}"
         await message.answer(
             text=text,
             reply_markup=create_pagen_keyboard(
@@ -49,7 +49,7 @@ async def process_mdl_btn_press(callback: CallbackQuery, state: FSMContext):
     dict_ = data['dict']
     mode = 0 if data['mode'] == 3 else data['mode'] + 1
     total = get_total_pages(data=dict_, mode=mode, wpp=_wpp)
-    text = get_dict_page(data=dict_, page=0, mode=mode, wpp=_wpp)
+    text = f"{LEXICON['dict_header']}{get_dict_page(data=dict_, page=0, mode=mode, wpp=_wpp)}"
     await callback.message.edit_text(
         text=text,
         reply_markup=create_pagen_keyboard(
@@ -69,7 +69,7 @@ async def process_nxt_btn_press(callback: CallbackQuery, state: FSMContext):
     dict_, mode = data['dict'], data['mode']
     total = get_total_pages(data=dict_, mode=mode, wpp=_wpp)
     if page < total:
-        text = get_dict_page(dict_, page, mode, _wpp)
+        text = f"{LEXICON['dict_header']}{get_dict_page(dict_, page, mode, _wpp)}"
         await callback.message.edit_text(
             text=text,
             reply_markup=create_pagen_keyboard(
@@ -89,7 +89,7 @@ async def process_nxt_btn_press(callback: CallbackQuery, state: FSMContext):
     dict_, mode = data['dict'], data['mode']
     total = get_total_pages(data=dict_, mode=mode, wpp=_wpp)
     if page > 1:
-        text = get_dict_page(dict_, page - 2, mode, _wpp)
+        text = f"{LEXICON['dict_header']}{get_dict_page(dict_, page - 2, mode, _wpp)}"
         await callback.message.edit_text(
             text=text,
             reply_markup=create_pagen_keyboard(

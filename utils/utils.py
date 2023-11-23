@@ -34,6 +34,14 @@ def get_dict_page(data: dict, page: int, mode: int, wpp: int,) -> str:
     text = '\n\n'.join((f'{LEXICON["mark"][data[word]["m_status"]]}{n}. '
                         f'<b>{word}</b> - {", ".join(data[word]["meaning"])}' for n, word in
                         enumerate(words[page * wpp: (page + 1) * wpp], wpp * page + 1)))
+
+    # Это пока надо оставить на подумать как убрать лишние пробелы
+    # nl = '\n'
+    # text = '\n'.join((f'{LEXICON["mark"][data[word]["m_status"]]}{n}. '
+    #                   f'<b>{word}</b> - {", ".join(data[word]["meaning"])}'
+    #                   f'{nl if len(word + str(n) + ", ".join(data[word]["meaning"])) < 42 else ""}'
+    #                   for n, word in enumerate(words[page * wpp: (page + 1) * wpp], wpp * page + 1)))
+
     return text
 
 
@@ -43,27 +51,32 @@ def get_total_pages(data: dict, mode: int, wpp: int) -> int:
 
 
 # надо додумать эту функцию и обединить в ней get_wt_result и get_mt_result
-def get_result(data: dict, method: str) -> str:
+def get_result(data: dict, method: str) -> tuple:
     words = tuple(filter(lambda x: not data[x]['u_answ'] is None, data))
 
     if method == 'by_word':
-        text = '\n\n'.join(
-            (f"{n}. <b>{word}</b> - {', '.join(data[word]['meaning'])}\n"
-             f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> "
-             f"{('❌', '✅')[data[word]['u_answ'] in data[word]['meaning']]}"
-             for n, word in enumerate(words, 1)))
-        rslt = f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] in data[word]['meaning'] for word in words)}" \
+        result_list = tuple(f"{n}. <b>{word}</b> - {', '.join(data[word]['meaning'])}\n"
+                            f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> "
+                            f"{('❌', '✅')[data[word]['u_answ'] in data[word]['meaning']]}"
+                            for n, word in enumerate(words, 1))
+        score = f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] in data[word]['meaning'] for word in words)}" \
                f" из {len(words)}</b>"
 
     if method == 'by_meaning':
-        text = '\n\n'.join(
-            (f"{n}. {', '.join(data[word]['meaning'])} - <b>{word}</b>\n"
-            f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> "
-            f"{('❌', '✅')[data[word]['u_answ'] == word]}"
-            for n, word in enumerate(words, 1)))
-        rslt = f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] == word for word in words)} из {len(words)}</b>"
+        result_list = tuple(f"{n}. {', '.join(data[word]['meaning'])} - <b>{word}</b>\n"
+                     f"\t<i>Ваш ответ:  <u>{data[word]['u_answ']}</u></i> "
+                     f"{('❌', '✅')[data[word]['u_answ'] == word]}"
+                     for n, word in enumerate(words, 1))
+        score = f"\n\n<b>Ваш результат: {sum(data[word]['u_answ'] == word for word in words)} из {len(words)}</b>"
 
-    return text + rslt
+    return result_list, score
+
+
+def get_total_rslt_pages(result_list: tuple, lpp: int) -> int:
+    return len(result_list) // lpp + (0, 1)[bool(len(result_list) % lpp)]
+
+def get_result_page(result_list: tuple, page: int, lpp: int) -> str:
+    return '\n\n'.join(result_list[page * lpp: (page + 1) * lpp])
 
 
 def proc_user_resp(data: dict[str, dict[str, list[str] | str | bool | None]], text: str, method: str) -> tuple[str, dict]:
@@ -107,7 +120,7 @@ def choise_first_word(data: dict) -> tuple:
     return LEXICON_TEST['is_all_memorized'], data, True
 
 
-def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], method: str) -> tuple[str, dict, bool]:
+def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], method: str) -> tuple[str | None, dict]:
     '''функци принимает словарь с данными и метод тестирования.
     Выбирает слово из неопрошенных и возвращает его.
     А если таких не осталось возвращает результат тестирования'''
@@ -116,10 +129,9 @@ def choice_next_word(data: dict[str, dict[str, list[str] | str | bool | None]], 
         word = choice(words)
         data[word]['t_status'] = True
         text = word if method == 'by_word' else ', '.join(data[word]['meaning'])
-        return text, data, False
-    text = get_wt_result(data) if method == 'by_word' else get_mt_result(data)
-    t_status_to_none(data)
-    return text, data, True
+        return text, data
+
+    return None, data
 
 
 def save_result(uid: int, data: dict):

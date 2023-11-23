@@ -24,11 +24,22 @@ class DictItem:
 
 
 class DataBase:
-    def __init__(self, data: dict[str, dict[str, list[str] | str]]):
-        self.data = (DictItem(
+    def __init__(self, data: dict):
+        self.data = tuple(DictItem(
             key=key,
             meaning=data[key]['meaning'],
             u_answ=data[key]['u_answ'],
             t_status=data[key]['t_status'],
-            m_status=int(data[key]['m-status'])
+            m_status=int(data[key]['m_status'])
         ) for key in data)
+
+    def __iter__(self):
+        yield from self.data
+
+    def get_answered(self):
+        yield from filter(lambda x: x.t_status is True, self.data)
+
+
+
+
+

@@ -24,5 +24,6 @@ class FSMTestWords(StatesGroup):
     wait_choose_mthd = State()
     by_word_mthd = State()
     by_mean_mthd = State()
+    look_through_res = State()
 
 
